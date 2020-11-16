@@ -4,8 +4,8 @@ import sys
 from datetime import datetime
 import threading
 
-from FixSocketHandler import FixSocketHandler
-from FixParser import FixParser
+from FixTrade.FixSocketHandler import FixSocketHandler
+from FixTrade.FixParser import FixParser
 
 
 class FixAppClient:
@@ -127,12 +127,12 @@ if __name__ == "__main__":
         print("usage:", sys.argv[0], "<host> <port> <sender_comp_id> <target_comp_id> <send_seq_num>")
         sys.exit(1)
 
-    host, port = sys.argv[1], int(sys.argv[2])
-    sender_comp_id = sys.argv[3]
-    target_comp_id = sys.argv[4]
-    send_seq_num = sys.argv[5]
+    main_host, main_port = sys.argv[1], int(sys.argv[2])
+    main_sender_comp_id = sys.argv[3]
+    main_target_comp_id = sys.argv[4]
+    main_send_seq_num = sys.argv[5]
 
-    fix_app_client = FixAppClient(host, port, sender_comp_id, target_comp_id, send_seq_num)
+    fix_app_client = FixAppClient(main_host, main_port, main_sender_comp_id, main_target_comp_id, main_send_seq_num)
 
     # Start the FIX Client
     fix_app_client.start()

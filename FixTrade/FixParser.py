@@ -21,6 +21,6 @@ class FixParser:
         return fix_dict
 
     @staticmethod
-    def prettyPrintFix(fix_bytes):
+    def pretty_print_fix(fix_bytes):
         fix_bytes = fix_bytes.replace(b'\x01', b'^')
-        return(str(fix_bytes))
+        return str(fix_bytes)

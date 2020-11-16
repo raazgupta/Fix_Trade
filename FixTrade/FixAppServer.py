@@ -5,8 +5,8 @@ from datetime import datetime
 import select
 import threading
 
-from FixSocketHandler import FixSocketHandler
-from FixParser import FixParser
+from FixTrade.FixSocketHandler import FixSocketHandler
+from FixTrade.FixParser import FixParser
 
 
 class FixAppServer:
@@ -96,7 +96,7 @@ class FixAppServer:
     def start(self):
 
         # Listen for connections from FIX Client
-        self.fix_server_sock.listen(host, port)
+        self.fix_server_sock.listen(self.host, self.port)
         self.socket_list.append(self.fix_server_sock.sock)
 
         try:
@@ -152,9 +152,9 @@ if __name__ == "__main__":
         print("usage:", sys.argv[0], "<host> <port>")
         sys.exit(1)
 
-    host, port = sys.argv[1], int(sys.argv[2])
+    main_host, main_port = sys.argv[1], int(sys.argv[2])
 
-    fix_app_server = FixAppServer(host, port)
+    fix_app_server = FixAppServer(main_host, main_port)
 
     # Start the FIX Server
     fix_app_server.start()
