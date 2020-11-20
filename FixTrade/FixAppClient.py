@@ -73,6 +73,116 @@ class FixAppClient:
 
         return message
 
+    def create_new_order(self, symbol, side, quantity, price):
+
+        message_list = []
+
+        message_list.append(("35", "D"))  # MsgType
+        message_list.append(("34", str(self.current_seq_num)))  # MsgSeqNum
+        message_list.append(("49", self.sender_comp_id))  # SenderCompID
+        message_list.append(("52", self.getSendingTime()))  # SendingTime
+        message_list.append(("56", self.target_comp_id))  # TargetCompID
+        message_list.append(("55", symbol))  # Symbol
+        message_list.append(("54", side))  # Side
+        message_list.append(("38", quantity))  # Quantity
+        message_list.append(("44", price))  # Price
+        message_list.append(("40", "2"))  # OrdType
+        message_list.append(("59", "0"))  # TimeInForce
+        message_list.append(("1", "H121"))  # Account
+        message_list.append(("47", "A"))  # AP FLAG
+        message_list.append(("114", "N"))  # LocateReqd
+        message_list.append(("11", str(self.current_seq_num)))  # ClOrdID
+        message_list.append(("21", "3"))  # HandlInst
+        message_list.append(("60", self.getSendingTime()))  # TransactTime
+
+        message = b''
+        for message_tag in message_list:
+            message = message + bytes(message_tag[0] + "=" + message_tag[1], encoding="utf-8") + b'\x01'
+
+        bodyLength = len(message)  # 9 - BodyLength
+
+        message = bytes("8=FIX.4.2", encoding="utf-8") + b'\x01' + bytes("9="+str(bodyLength), encoding="utf-8") + b'\x01' + message
+
+        checkSumStr = self.getCheckSum(message)
+
+        message = message + bytes("10="+checkSumStr, encoding="utf-8") + b'\x01'
+
+        self.current_seq_num += 1
+
+        return message
+
+    def create_replace_order(self, orig_cl_ord_id, symbol, side, quantity, price):
+
+        message_list = []
+
+        message_list.append(("35", "G"))  # MsgType
+        message_list.append(("34", str(self.current_seq_num)))  # MsgSeqNum
+        message_list.append(("49", self.sender_comp_id))  # SenderCompID
+        message_list.append(("52", self.getSendingTime()))  # SendingTime
+        message_list.append(("56", self.target_comp_id))  # TargetCompID
+        message_list.append(("55", symbol))  # Symbol
+        message_list.append(("54", side))  # Side
+        message_list.append(("38", quantity))  # Quantity
+        message_list.append(("44", price))  # Price
+        message_list.append(("40", "2"))  # OrdType
+        message_list.append(("59", "0"))  # TimeInForce
+        message_list.append(("1", "H121"))  # Account
+        message_list.append(("47", "A"))  # AP FLAG
+        message_list.append(("114", "N"))  # LocateReqd
+        message_list.append(("11", str(self.current_seq_num)))  # ClOrdID
+        message_list.append(("21", "3"))  # HandlInst
+        message_list.append(("60", self.getSendingTime()))  # TransactTime
+        message_list.append(("41", orig_cl_ord_id))  # OrigClOrdID
+
+        message = b''
+        for message_tag in message_list:
+            message = message + bytes(message_tag[0] + "=" + message_tag[1], encoding="utf-8") + b'\x01'
+
+        bodyLength = len(message)  # 9 - BodyLength
+
+        message = bytes("8=FIX.4.2", encoding="utf-8") + b'\x01' + bytes("9="+str(bodyLength), encoding="utf-8") + b'\x01' + message
+
+        checkSumStr = self.getCheckSum(message)
+
+        message = message + bytes("10="+checkSumStr, encoding="utf-8") + b'\x01'
+
+        self.current_seq_num += 1
+
+        return message
+
+    def create_cancel_order(self, orig_cl_ord_id, symbol, side, quantity):
+
+        message_list = []
+
+        message_list.append(("35", "F"))  # MsgType
+        message_list.append(("34", str(self.current_seq_num)))  # MsgSeqNum
+        message_list.append(("49", self.sender_comp_id))  # SenderCompID
+        message_list.append(("52", self.getSendingTime()))  # SendingTime
+        message_list.append(("56", self.target_comp_id))  # TargetCompID
+        message_list.append(("55", symbol))  # Symbol
+        message_list.append(("54", side))  # Side
+        message_list.append(("38", quantity))  # Quantity
+        message_list.append(("11", str(self.current_seq_num)))  # ClOrdID
+        message_list.append(("60", self.getSendingTime()))  # TransactTime
+        message_list.append(("41", orig_cl_ord_id))  # OrigClOrdID
+
+        message = b''
+        for message_tag in message_list:
+            message = message + bytes(message_tag[0] + "=" + message_tag[1], encoding="utf-8") + b'\x01'
+
+        bodyLength = len(message)  # 9 - BodyLength
+
+        message = bytes("8=FIX.4.2", encoding="utf-8") + b'\x01' + bytes("9="+str(bodyLength), encoding="utf-8") + b'\x01' + message
+
+        checkSumStr = self.getCheckSum(message)
+
+        message = message + bytes("10="+checkSumStr, encoding="utf-8") + b'\x01'
+
+        self.current_seq_num += 1
+
+        return message
+
+
     def getSendingTime(self):
         return datetime.utcnow().strftime('%Y%m%d-%H:%M:%S.%f')[:-3]
 
@@ -107,14 +217,48 @@ class FixAppClient:
 
         try:
             while True:
-                input_text = input("new / amend / cancel / receive : ")
-                if input_text == "receive":
-                    received_messages = self.fix_client_sock.receive()
-                    if not received_messages:
-                        print("No received messages")
-                    else:
-                        for message in received_messages:
-                            print(str(FixParser.parse_fix_bytes(message)))
+                input_text = input("new / replace / cancel / receive : ")
+                input_list = input_text.split(" ")
+                if input_list:
+                    if input_list[0] == "receive":
+                        received_messages = self.fix_client_sock.receive()
+                        if not received_messages:
+                            print("No received messages")
+                        else:
+                            for message in received_messages:
+                                print(str(FixParser.parse_fix_bytes(message)))
+                    elif input_list[0] == "new":
+                        if len(input_list) == 5:
+                            symbol = input_list[1]
+                            side = input_list[2]
+                            quantity = input_list[3]
+                            price = input_list[4]
+                            new_order = self.create_new_order(symbol, side, quantity, price)
+                            self.fix_client_sock.send(new_order)
+                        else:
+                            print("Usage: new <symbol> <side> <quantity> <price>")
+                    elif input_list[0] == "replace":
+                        if len(input_list) == 6:
+                            orig_cl_ord_id = input_list[1]
+                            symbol = input_list[2]
+                            side = input_list[3]
+                            quantity = input_list[4]
+                            price = input_list[5]
+                            amend_order = self.create_replace_order(orig_cl_ord_id, symbol, side, quantity, price)
+                            self.fix_client_sock.send(amend_order)
+                        else:
+                            print("Usage: amend <OrigClOrdID> <symbol> <side> <quantity> <price>")
+                    elif input_list[0] == "cancel":
+                        if len(input_list) == 5:
+                            orig_cl_ord_id = input_list[1]
+                            symbol = input_list[2]
+                            side = input_list[3]
+                            quantity = input_list[4]
+                            cancel_order = self.create_cancel_order(orig_cl_ord_id, symbol, side, quantity)
+                            self.fix_client_sock.send(cancel_order)
+                        else:
+                            print("Usage: cancel <OrigClOrdID> <symbol> <side> <quantity>")
+
 
         except KeyboardInterrupt:
             print("caught keyboard interrupt, exiting")
