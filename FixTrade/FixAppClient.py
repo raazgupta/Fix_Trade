@@ -226,7 +226,25 @@ class FixAppClient:
                             print("No received messages")
                         else:
                             for message in received_messages:
-                                print(str(FixParser.parse_fix_bytes(message)))
+                                fix_dict = FixParser.parse_fix_bytes(message)
+                                if fix_dict["35"] == "A":
+                                    print("Login Result: " + str(fix_dict))
+                                elif fix_dict["35"] == "0":
+                                    print("Heartbeat: " + str(fix_dict))
+                                elif fix_dict["35"] == "8":
+                                    cl_ord_id = fix_dict["11"]
+                                    if fix_dict["39"] == "0":
+                                        print("New Order Ack - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                    elif fix_dict["39"] == "E":
+                                        print("Pending Replace - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                    elif fix_dict["39"] == "5":
+                                        print("Replaced - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                    elif fix_dict["39"] == "6":
+                                        print("Pending Cancel - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                    elif fix_dict["39"] == "4":
+                                        print("Canceled - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                else:
+                                    print(str(fix_dict))
                     elif input_list[0] == "new":
                         if len(input_list) == 5:
                             symbol = input_list[1]
@@ -247,7 +265,7 @@ class FixAppClient:
                             amend_order = self.create_replace_order(orig_cl_ord_id, symbol, side, quantity, price)
                             self.fix_client_sock.send(amend_order)
                         else:
-                            print("Usage: amend <OrigClOrdID> <symbol> <side> <quantity> <price>")
+                            print("Usage: replace <OrigClOrdID> <symbol> <side> <quantity> <price>")
                     elif input_list[0] == "cancel":
                         if len(input_list) == 5:
                             orig_cl_ord_id = input_list[1]
