@@ -217,10 +217,10 @@ class FixAppClient:
 
         try:
             while True:
-                input_text = input("new / replace / cancel / receive : ")
+                input_text = input("new / replace / cancel / get : ")
                 input_list = input_text.split(" ")
                 if input_list:
-                    if input_list[0] == "receive":
+                    if input_list[0] == "get":
                         received_messages = self.fix_client_sock.receive()
                         if not received_messages:
                             print("No received messages")
@@ -233,8 +233,6 @@ class FixAppClient:
                                     print("Heartbeat: " + str(fix_dict))
                                 elif fix_dict["35"] == "8":
                                     cl_ord_id = fix_dict["11"]
-                                    symbol = fix_dict["55"]
-                                    side = fix_dict["54"]
                                     if fix_dict["39"] == "0":
                                         print("New Order Ack - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
                                     elif fix_dict["39"] == "E":
@@ -246,20 +244,26 @@ class FixAppClient:
                                     elif fix_dict["39"] == "4":
                                         print("Canceled - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
                                     elif fix_dict["39"] == "1":
+                                        symbol = fix_dict["55"]
+                                        side = fix_dict["54"]
                                         last_shares = fix_dict["32"]
                                         last_price = fix_dict["31"]
-                                        print(f"Partially Filled - ClOrdID: {cl_ord_id} Symbol: {symbol} Side: {side}" +
+                                        print(f"Partially Filled - ClOrdID: {cl_ord_id} Symbol: {symbol} Side: {side} " +
                                               f"LastShares: {last_shares} LastPx: {last_price} " + str(fix_dict))
                                     elif fix_dict["39"] == "2":
+                                        symbol = fix_dict["55"]
+                                        side = fix_dict["54"]
                                         last_shares = fix_dict["32"]
                                         last_price = fix_dict["31"]
                                         cum_qty = fix_dict["14"]
                                         avg_px = fix_dict["6"]
-                                        print(f"Filled - ClOrdID: {cl_ord_id} Symbol: {symbol} Side: {side}" +
+                                        print(f"Filled - ClOrdID: {cl_ord_id} Symbol: {symbol} Side: {side} " +
                                               f"LastShares: {last_shares} LastPx: {last_price} " +
                                               f"CumQty: {cum_qty} AvgPx: {avg_px} " + str(fix_dict))
                                     elif fix_dict["39"] == "8":
                                         print("Rejected - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
+                                    else:
+                                        print(str(fix_dict))
                                 elif fix_dict["35"] == "9":
                                     cl_ord_id = fix_dict["11"]
                                     print("Order Cancel/Replace Rejected - ClOrdID: " + cl_ord_id + "  " + str(fix_dict))
